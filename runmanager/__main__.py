@@ -679,8 +679,8 @@ class GroupTab(object):
         COLOR_BOOL_ON = '#63F731'  # bright green
         COLOR_BOOL_OFF = '#608060'  # dark green
     elif check_if_light_or_dark() == "dark":
-        COLOR_ERROR = "#A30000"  # light red
-        COLOR_OK = "#2F4C00"  # dark red
+        COLOR_ERROR = "#A30000"  # red
+        COLOR_OK = "#2F4C00"  # green
         COLOR_BOOL_ON = "#3086C3"  # bright blue
         COLOR_BOOL_OFF = "#220070"  # dark blue
     else:
