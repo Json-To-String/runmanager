@@ -48,6 +48,7 @@ matplotlib.use('Agg')
 
 from qtutils.qt import QtCore, QtGui, QtWidgets
 from qtutils.qt.QtCore import pyqtSignal as Signal
+from qtutils.qt.QtCore import Qt
 
 splash.update_text('importing labscript suite modules')
 from labscript_utils.ls_zprocess import zmq_get, ProcessTree, ZMQServer
@@ -98,7 +99,16 @@ def log_if_global(g, g_list, message):
     if g in g_list:
         logger.info(message)
 
-    
+def check_if_light_or_dark():
+    style_hints = QtGui.QGuiApplication.styleHints()
+    if style_hints.colorScheme() == Qt.ColorScheme.Dark:
+        return "dark"
+    elif style_hints.colorScheme() == Qt.ColorScheme.Light:
+        return "light"
+    else:
+        return "unknown"
+
+
 def composite_colors(r0, g0, b0, a0, r1, g1, b1, a1):
     """composite a second colour over a first with given alpha values and return the
     result"""
@@ -351,7 +361,7 @@ class ItemView(object):
     leftClicked = Signal(QtCore.QModelIndex)
     doubleLeftClicked = Signal(QtCore.QModelIndex)
 
-    COLOR_HIGHLIGHT = "#40308CC6" # Semitransparent blue
+    COLOR_HIGHLIGHT = "#40308CC6" # Semitransparent blue TODO: Smart way to access OS highlight
 
     def __init__(self, *args):
         super(ItemView, self).__init__(*args)
@@ -662,11 +672,19 @@ class GroupTab(object):
     GLOBALS_ROLE_SORT_DATA = QtCore.Qt.UserRole + 2
     GLOBALS_ROLE_PREVIOUS_TEXT = QtCore.Qt.UserRole + 3
     GLOBALS_ROLE_IS_BOOL = QtCore.Qt.UserRole + 4
-
-    COLOR_ERROR = '#F79494'  # light red
-    COLOR_OK = '#A5F7C6'  # light green
-    COLOR_BOOL_ON = '#63F731'  # bright green
-    COLOR_BOOL_OFF = '#608060'  # dark green
+    # TODO: Do we default to light?
+    if check_if_light_or_dark() == "light":
+        COLOR_ERROR = '#F79494'  # light red
+        COLOR_OK = '#A5F7C6'  # light green
+        COLOR_BOOL_ON = '#63F731'  # bright green
+        COLOR_BOOL_OFF = '#608060'  # dark green
+    elif check_if_light_or_dark() == "dark":
+        COLOR_ERROR = "#A30000"  # light red
+        COLOR_OK = "#2F4C00"  # dark red
+        COLOR_BOOL_ON = "#3086C3"  # bright blue
+        COLOR_BOOL_OFF = "#220070"  # dark blue
+    else:
+        print(f"Unable to get color palette from os, got {check_if_light_or_dark()}")
 
     GLOBALS_DUMMY_ROW_TEXT = '<Click to add global>'
 
@@ -3705,6 +3723,7 @@ if __name__ == "__main__":
         qapplication = QtWidgets.QApplication(sys.argv)
     qapplication.setAttribute(QtCore.Qt.AA_DontShowIconsInMenus, False)
     app = RunManager()
+    logger.info(f'OS Theme is : {check_if_light_or_dark()}')
     splash.update_text('Starting remote server')
     remote_server = RemoteServer()
     splash.hide()
