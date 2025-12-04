@@ -450,21 +450,40 @@ subprocess</string>
                <string>Select folder ...</string>
               </property>
               <property name="styleSheet">
-               <string notr="true">QToolButton{
-    border: none;
-    background: white;
-    padding: 2px;
-}
+              <string notr="true">QToolButton {
+                  border: none;
+                  background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                  stop: 0 palette(light), stop: 1 palette(window));
+                  padding: 2px;
+              }
 
-QToolButton:hover {
-     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                       stop: 0 #f6f7fa, stop: 1 #dadbde);
- }
+              QToolButton:hover {
+                  background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                                    stop: 0 palette(light), stop: 1 palette(window));
+                  border: 1px solid palette(dark);
+                  border-radius: 3px;
+              }
 
- QToolButton:pressed {
-     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                       stop: 0 #dadbde, stop: 1 #f6f7fa);
- }</string>
+              QToolButton:pressed {
+                  background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                                    stop: 0 palette(window), stop: 1 palette(light));
+                  border: 1px solid palette(dark);
+                  border-radius: 3px;
+              }
+
+              QToolButton:checked {
+                  background-color: palette(window);
+                  border: 1px solid palette(dark);
+                  border-radius: 3px;
+              }
+
+              QToolButton:hover:checked {
+                  background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                                    stop: 0 palette(window), stop: 1 palette(light));
+                  border: 1px solid palette(dark);
+                  border-radius: 3px;
+              }
+              </string>
               </property>
               <property name="text">
                <string>...</string>
@@ -485,7 +504,7 @@ QToolButton:hover {
            </property>
            <property name="styleSheet">
             <string notr="true">QToolButton{
-    background: rgb(224,224,224);
+    background: palette(window);
     padding: 3px;
 }</string>
            </property>
@@ -534,21 +553,40 @@ QToolButton:hover {
                <string>Select a file ...</string>
               </property>
               <property name="styleSheet">
-               <string notr="true">QToolButton{
-    border: none;
-    background: white;
-    padding: 2px;
-}
+                  <string notr="true">QToolButton {
+                  border: none;
+                  background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                  stop: 0 palette(light), stop: 1 palette(window));
+                  padding: 2px;
+              }
 
-QToolButton:hover {
-     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                       stop: 0 #f6f7fa, stop: 1 #dadbde);
- }
+              QToolButton:hover {
+                  background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                                    stop: 0 palette(window), stop: 1 palette(light));
+                  border: 1px solid palette(dark);
+                  border-radius: 3px;
+              }
 
- QToolButton:pressed {
-     background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                       stop: 0 #dadbde, stop: 1 #f6f7fa);
- }</string>
+              QToolButton:pressed {
+                  background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                                    stop: 0 palette(window), stop: 1 palette(light));
+                  border: 1px solid palette(dark);
+                  border-radius: 3px;
+              }
+
+              QToolButton:checked {
+                  background-color: palette(window);
+                  border: 1px solid palette(dark);
+                  border-radius: 3px;
+              }
+
+              QToolButton:hover:checked {
+                  background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                                    stop: 0 palette(window), stop: 1 palette(light));
+                  border: 1px solid palette(dark);
+                  border-radius: 3px;
+              }
+              </string>
               </property>
               <property name="text">
                <string>...</string>
