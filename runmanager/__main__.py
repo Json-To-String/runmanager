@@ -361,8 +361,7 @@ class ItemView(object):
     leftClicked = Signal(QtCore.QModelIndex)
     doubleLeftClicked = Signal(QtCore.QModelIndex)
 
-    COLOR_HIGHLIGHT = "#40308CC6" # Semitransparent blue TODO: Smart way to access OS highlight
-
+    COLOR_HIGHLIGHT = "#40308CC6" # Semitransparent blue TODO: Find a way to *safely* delete this (horrible bug otherwise)
     def __init__(self, *args):
         super(ItemView, self).__init__(*args)
         self._pressed_index = None
@@ -373,7 +372,8 @@ class ItemView(object):
             p.setColor(
                 group,
                 QtGui.QPalette.Highlight,
-                QtGui.QColor(self.COLOR_HIGHLIGHT))
+                p.color(QtGui.QPalette.Accent)
+            )
             p.setColor(
                 group,
                 QtGui.QPalette.HighlightedText,
@@ -679,10 +679,10 @@ class GroupTab(object):
         COLOR_BOOL_ON = '#63F731'  # bright green
         COLOR_BOOL_OFF = '#608060'  # dark green
     elif check_if_light_or_dark() == "dark":
-        COLOR_ERROR = "#A30000"  # red
+        COLOR_ERROR = "#BC0000"  # red
         COLOR_OK = "#2F4C00"  # green
-        COLOR_BOOL_ON = "#3086C3"  # bright blue
-        COLOR_BOOL_OFF = "#220070"  # dark blue
+        COLOR_BOOL_ON = "#34CF00"  # bright green
+        COLOR_BOOL_OFF = "#003900"  # dark green
     else:
         print(f"Unable to get color palette from os, got {check_if_light_or_dark()}")
 
