@@ -361,7 +361,7 @@ class ItemView(object):
     leftClicked = Signal(QtCore.QModelIndex)
     doubleLeftClicked = Signal(QtCore.QModelIndex)
 
-    COLOR_HIGHLIGHT = "#40308CC6" # Semitransparent blue TODO: Find a way to *safely* delete this (horrible bug otherwise)
+    COLOR_HIGHLIGHT = "#40308CC6" # Semitransparent blue
     def __init__(self, *args):
         super(ItemView, self).__init__(*args)
         self._pressed_index = None
@@ -681,7 +681,7 @@ class GroupTab(object):
     elif check_if_light_or_dark() == "dark":
         COLOR_ERROR = "#BC0000"  # red
         COLOR_OK = "#2F4C00"  # green
-        COLOR_BOOL_ON = "#34CF00"  # bright green
+        COLOR_BOOL_ON = "#29A300"  # bright green
         COLOR_BOOL_OFF = "#003900"  # dark green
     else:
         print(f"Unable to get color palette from os, got {check_if_light_or_dark()}")
