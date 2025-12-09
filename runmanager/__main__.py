@@ -372,7 +372,7 @@ class ItemView(object):
             p.setColor(
                 group,
                 QtGui.QPalette.Highlight,
-                p.color(QtGui.QPalette.Accent)
+                p.color(QtGui.QPalette.Highlight)
             )
             p.setColor(
                 group,
