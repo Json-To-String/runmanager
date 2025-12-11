@@ -70,6 +70,7 @@ from qtutils import (
 )
 from labscript_utils.qtwidgets.outputbox import OutputBox
 import qtutils.icons
+from qtutils.qt import QT_ENV
 
 GLOBAL_MONOSPACE_FONT = "Consolas" if os.name == 'nt' else "Ubuntu Mono"
 
@@ -100,13 +101,15 @@ def log_if_global(g, g_list, message):
         logger.info(message)
 
 def check_if_light_or_dark():
+    
+    # pyqt5 defaults to light and doesn't have styleHints.colorScheme()
+    if QT_ENV.lower() == 'pyqt5':
+        return "light"
     style_hints = QtGui.QGuiApplication.styleHints()
     if style_hints.colorScheme() == Qt.ColorScheme.Dark:
         return "dark"
-    elif style_hints.colorScheme() == Qt.ColorScheme.Light:
-        return "light"
     else:
-        return "unknown"
+        return "light"
 
 
 def composite_colors(r0, g0, b0, a0, r1, g1, b1, a1):
@@ -672,7 +675,6 @@ class GroupTab(object):
     GLOBALS_ROLE_SORT_DATA = QtCore.Qt.UserRole + 2
     GLOBALS_ROLE_PREVIOUS_TEXT = QtCore.Qt.UserRole + 3
     GLOBALS_ROLE_IS_BOOL = QtCore.Qt.UserRole + 4
-    # TODO: Do we default to light?
     if check_if_light_or_dark() == "light":
         COLOR_ERROR = '#F79494'  # light red
         COLOR_OK = '#A5F7C6'  # light green
