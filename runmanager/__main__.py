@@ -46,9 +46,8 @@ splash.update_text('importing matplotlib')
 import matplotlib
 matplotlib.use('Agg')
 
-from qtutils.qt import QtCore, QtGui, QtWidgets
+from qtutils.qt import QtCore, QtGui, QtWidgets, QT_ENV
 from qtutils.qt.QtCore import pyqtSignal as Signal
-from qtutils.qt.QtCore import Qt
 
 splash.update_text('importing labscript suite modules')
 from labscript_utils.ls_zprocess import zmq_get, ProcessTree, ZMQServer
@@ -70,7 +69,6 @@ from qtutils import (
 )
 from labscript_utils.qtwidgets.outputbox import OutputBox
 import qtutils.icons
-from qtutils.qt import QT_ENV
 
 GLOBAL_MONOSPACE_FONT = "Consolas" if os.name == 'nt' else "Ubuntu Mono"
 
@@ -106,7 +104,7 @@ def check_if_light_or_dark():
     if QT_ENV.lower() == 'pyqt5':
         return "light"
     style_hints = QtGui.QGuiApplication.styleHints()
-    if style_hints.colorScheme() == Qt.ColorScheme.Dark:
+    if style_hints.colorScheme() == QtCore.Qt.ColorScheme.Dark:
         return "dark"
     else:
         return "light"
@@ -675,18 +673,16 @@ class GroupTab(object):
     GLOBALS_ROLE_SORT_DATA = QtCore.Qt.UserRole + 2
     GLOBALS_ROLE_PREVIOUS_TEXT = QtCore.Qt.UserRole + 3
     GLOBALS_ROLE_IS_BOOL = QtCore.Qt.UserRole + 4
-    if check_if_light_or_dark() == "light":
-        COLOR_ERROR = '#F79494'  # light red
-        COLOR_OK = '#A5F7C6'  # light green
-        COLOR_BOOL_ON = '#63F731'  # bright green
-        COLOR_BOOL_OFF = '#608060'  # dark green
-    elif check_if_light_or_dark() == "dark":
+    
+    COLOR_ERROR = '#F79494'  # light red
+    COLOR_OK = '#A5F7C6'  # light green
+    COLOR_BOOL_ON = '#63F731'  # bright green
+    COLOR_BOOL_OFF = '#608060'  # dark green
+    if check_if_light_or_dark() == "dark":
         COLOR_ERROR = "#BC0000"  # red
         COLOR_OK = "#2F4C00"  # green
         COLOR_BOOL_ON = "#29A300"  # bright green
         COLOR_BOOL_OFF = "#003900"  # dark green
-    else:
-        print(f"Unable to get color palette from os, got {check_if_light_or_dark()}")
 
     GLOBALS_DUMMY_ROW_TEXT = '<Click to add global>'
 
