@@ -368,19 +368,19 @@ class ItemView(object):
         self._pressed_index = None
         self._double_click = False
         self.setAutoScroll(False)
-        p = self.palette()
+        palette = self.palette()
         for group in [QtGui.QPalette.Active, QtGui.QPalette.Inactive]:
-            p.setColor(
+            palette.setColor(
                 group,
                 QtGui.QPalette.Highlight,
-                p.color(QtGui.QPalette.Highlight)
+                QtGui.QColor(self.COLOR_HIGHLIGHT)
             )
-            p.setColor(
+            palette.setColor(
                 group,
                 QtGui.QPalette.HighlightedText,
-                p.color(QtGui.QPalette.Active, QtGui.QPalette.WindowText)
+                palette.color(QtGui.QPalette.WindowText)
             )
-        self.setPalette(p)
+        self.setPalette(palette)
 
     def mousePressEvent(self, event):
         result = super(ItemView, self).mousePressEvent(event)
@@ -558,6 +558,7 @@ class AlternatingColorModel(QtGui.QStandardItemModel):
 
 class Editor(QtWidgets.QTextEdit):
     """Popup editor with word wrapping and automatic resizing."""
+    COLOR_HIGHLIGHT = "#40308CC6" # Semitransparent blue
     def __init__(self, parent):
         QtWidgets.QTextEdit.__init__(self, parent)
         self.setWordWrapMode(QtGui.QTextOption.WordWrap)
@@ -566,6 +567,19 @@ class Editor(QtWidgets.QTextEdit):
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.textChanged.connect(self.update_size)
         self.initial_height = None
+        palette = self.palette()
+        for group in [QtGui.QPalette.Active, QtGui.QPalette.Inactive]:
+            palette.setColor(
+                group,
+                QtGui.QPalette.Highlight,
+                QtGui.QColor(self.COLOR_HIGHLIGHT)
+            )
+            palette.setColor(
+                group,
+                QtGui.QPalette.HighlightedText,
+                palette.color(QtGui.QPalette.WindowText)
+            )
+        self.setPalette(palette)
 
     def update_size(self):
         if self.initial_height is not None:
