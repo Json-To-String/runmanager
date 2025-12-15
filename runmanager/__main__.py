@@ -488,15 +488,6 @@ class AlternatingColorModel(QtGui.QStandardItemModel):
         # How much darker in each channel is the alternate base color compared
         # to the base color?
         self.view = view
-        palette = view.palette()
-        self.normal_color = palette.color(QtGui.QPalette.Base)
-        self.alternate_color = palette.color(QtGui.QPalette.AlternateBase)
-        r, g, b, a = self.normal_color.getRgb()
-        alt_r, alt_g, alt_b, alt_a = self.alternate_color.getRgb()
-        self.delta_r = alt_r - r
-        self.delta_g = alt_g - g
-        self.delta_b = alt_b - b
-        self.delta_a = alt_a - a
 
         # A cache, store brushes so we don't have to recalculate them. Is faster.
         self.bg_brushes = {}
@@ -510,21 +501,31 @@ class AlternatingColorModel(QtGui.QStandardItemModel):
         except KeyError:
             pass
         # Get the colour of the cell with alternate row shading:
+        normal_color = self.view.palette().color(
+            QtGui.QPalette.ColorGroup.Disabled,
+            QtGui.QPalette.ColorRole.Base
+        )
+        alternate_color = self.view.palette().color(
+            QtGui.QPalette.ColorGroup.Disabled,
+            QtGui.QPalette.ColorRole.AlternateBase
+        )
         if normal_rgb is None:
             # No colour has been set. Use palette colours:
             if alternate:
-                bg_color = self.alternate_color
+                bg_color = alternate_color
             else:
-                bg_color = self.normal_color
+                bg_color = normal_color
         else:
             bg_color = normal_brush.color()
             if alternate:
                 # Modify alternate rows:
                 r, g, b, a = normal_rgb
-                alt_r = min(max(r + self.delta_r, 0), 255)
-                alt_g = min(max(g + self.delta_g, 0), 255)
-                alt_b = min(max(b + self.delta_b, 0), 255)
-                alt_a = min(max(a + self.delta_a, 0), 255)
+                nr, ng, nb, na = normal_color.getRgb()
+                ar, ag, ab, aa = alternate_color.getRgb()
+                alt_r = min(max(r + ar - nr, 0), 255)
+                alt_g = min(max(g + ag - ng, 0), 255)
+                alt_b = min(max(b + ab - nb, 0), 255)
+                alt_a = min(max(a + aa - na, 0), 255)
                 bg_color = QtGui.QColor(alt_r, alt_g, alt_b, alt_a)
 
         # If parent is a TableView, we handle selection highlighting as part of the
