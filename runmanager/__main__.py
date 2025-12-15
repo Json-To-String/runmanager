@@ -99,17 +99,6 @@ def log_if_global(g, g_list, message):
     if g in g_list:
         logger.info(message)  # uses global `logger` instance defined in __main__
 
-def check_if_light_or_dark():
-    
-    # pyqt5 defaults to light and doesn't have styleHints.colorScheme()
-    if QT_ENV.lower() == 'pyqt5':
-        return "light"
-    style_hints = QtGui.QGuiApplication.styleHints()
-    if style_hints.colorScheme() == QtCore.Qt.ColorScheme.Dark:
-        return "dark"
-    else:
-        return "light"
-
 
 def composite_colors(r0, g0, b0, a0, r1, g1, b1, a1):
     """composite a second colour over a first with given alpha values and return the
@@ -363,7 +352,7 @@ class ItemView(object):
     leftClicked = Signal(QtCore.QModelIndex)
     doubleLeftClicked = Signal(QtCore.QModelIndex)
 
-    COLOR_HIGHLIGHT = "#40308CC6" # Semitransparent blue
+
     def __init__(self, *args):
         super(ItemView, self).__init__(*args)
         self._pressed_index = None
@@ -374,7 +363,7 @@ class ItemView(object):
             palette.setColor(
                 group,
                 QtGui.QPalette.Highlight,
-                QtGui.QColor(self.COLOR_HIGHLIGHT)
+                QtGui.QColor(RunmanagerColors().COLOR_HIGHLIGHT)
             )
             palette.setColor(
                 group,
@@ -533,7 +522,7 @@ class AlternatingColorModel(QtGui.QStandardItemModel):
         # background colours:
         if selected and isinstance(self.view, QtWidgets.QTableView):
             # Overlay highlight colour:
-            r_s, g_s, b_s, a_s = QtGui.QColor(ItemView.COLOR_HIGHLIGHT).getRgb()
+            r_s, g_s, b_s, a_s = QtGui.QColor(RunmanagerColors().COLOR_HIGHLIGHT).getRgb()
             r_0, g_0, b_0, a_0 = bg_color.getRgb()
             rgb = composite_colors(r_0, g_0, b_0, a_0, r_s, g_s, b_s, a_s)
             bg_color = QtGui.QColor(*rgb)
@@ -548,7 +537,7 @@ class AlternatingColorModel(QtGui.QStandardItemModel):
         making the alternate colours visible even when custom colors have been set - the
         same shading will be applied to the custom colours. Only really looks sensible
         when the normal and alternate colors are similar. Also applies selection
-        highlight colour (using ItemView.COLOR_HIGHLIGHT), similarly with alternate-row
+        highlight colour (using RunmanagerColors().COLOR_HIGHLIGHT), similarly with alternate-row
         shading, for the case of a QTableView."""
         if role == QtCore.Qt.BackgroundRole:
             normal_brush = QtGui.QStandardItemModel.data(self, index, QtCore.Qt.BackgroundRole)
@@ -560,7 +549,7 @@ class AlternatingColorModel(QtGui.QStandardItemModel):
 
 class Editor(QtWidgets.QTextEdit):
     """Popup editor with word wrapping and automatic resizing."""
-    COLOR_HIGHLIGHT = "#40308CC6" # Semitransparent blue
+
     def __init__(self, parent):
         QtWidgets.QTextEdit.__init__(self, parent)
         self.setWordWrapMode(QtGui.QTextOption.WordWrap)
@@ -574,7 +563,7 @@ class Editor(QtWidgets.QTextEdit):
             palette.setColor(
                 group,
                 QtGui.QPalette.Highlight,
-                QtGui.QColor(self.COLOR_HIGHLIGHT)
+                QtGui.QColor(RunmanagerColors().COLOR_HIGHLIGHT)
             )
             palette.setColor(
                 group,
@@ -677,6 +666,57 @@ class ItemDelegate(QtWidgets.QStyledItemDelegate):
     def setModelData(self, editor, model, index):
         model.setData(index, editor.toPlainText())
 
+class RunmanagerColors(object):
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+
+        return cls._instance
+    
+    def __init__(self):
+
+        if not hasattr(self, '_initialized'):
+            self.logger = logging.getLogger('runmanager')
+
+            # init colors
+            self.update_colors_from_scheme()
+
+            # common color definitions
+            self.COLOR_HIGHLIGHT = "#40308CC6"  # semitransparent blue
+
+            self._initialized = True
+    
+    def check_if_light(self):
+        
+        # pyqt5 defaults to light and doesn't have styleHints.colorScheme()
+        if QT_ENV.lower() == 'pyqt5':
+            return True
+        
+        style_hints = QtGui.QGuiApplication.styleHints()
+        if style_hints.colorScheme() == QtCore.Qt.ColorScheme.Dark:
+            return False
+        else:
+            return True
+        
+    def update_colors_from_scheme(self):
+
+        if self.check_if_light():
+            self.logger.info('Setting custom light theme colors')
+            # use light mode colors for GroupTabs
+            self.COLOR_ERROR = '#F79494'  # light red
+            self.COLOR_OK = '#A5F7C6'  # light green
+            self.COLOR_BOOL_ON = '#63F731'  # bright green
+            self.COLOR_BOOL_OFF = '#608060'  # dark green
+        else:
+            self.logger.info('Setting custom dark theme colors')
+            # use dark mode colors for GroupTabs
+            self.COLOR_ERROR = "#BC0000"  # red
+            self.COLOR_OK = "#2F4C00"  # green
+            self.COLOR_BOOL_ON = "#29A300"  # bright green
+            self.COLOR_BOOL_OFF = "#003900"  # dark green
+
 
 class GroupTab(object):
     GLOBALS_COL_DELETE = 0
@@ -689,16 +729,6 @@ class GroupTab(object):
     GLOBALS_ROLE_SORT_DATA = QtCore.Qt.UserRole + 2
     GLOBALS_ROLE_PREVIOUS_TEXT = QtCore.Qt.UserRole + 3
     GLOBALS_ROLE_IS_BOOL = QtCore.Qt.UserRole + 4
-    
-    COLOR_ERROR = '#F79494'  # light red
-    COLOR_OK = '#A5F7C6'  # light green
-    COLOR_BOOL_ON = '#63F731'  # bright green
-    COLOR_BOOL_OFF = '#608060'  # dark green
-    if check_if_light_or_dark() == "dark":
-        COLOR_ERROR = "#BC0000"  # red
-        COLOR_OK = "#2F4C00"  # green
-        COLOR_BOOL_ON = "#29A300"  # bright green
-        COLOR_BOOL_OFF = "#003900"  # dark green
 
     GLOBALS_DUMMY_ROW_TEXT = '<Click to add global>'
 
@@ -707,6 +737,7 @@ class GroupTab(object):
         self.logger = setup_logging('lyse.groupTab')
 
         self.tabWidget = tabWidget
+        self.colorConfig = RunmanagerColors()
 
         loader = UiLoader()
         loader.registerCustomWidget(TableView)
@@ -1240,14 +1271,14 @@ class GroupTab(object):
             units_item.setData('!1', self.GLOBALS_ROLE_SORT_DATA)
             units_item.setEditable(False)
             units_item.setCheckState(QtCore.Qt.Checked)
-            units_item.setBackground(QtGui.QBrush(QtGui.QColor(self.COLOR_BOOL_ON)))
+            units_item.setBackground(QtGui.QBrush(QtGui.QColor(self.colorConfig.COLOR_BOOL_ON)))
         elif value == 'False':
             units_item.setData(True, self.GLOBALS_ROLE_IS_BOOL)
             units_item.setText('Bool')
             units_item.setData('!0', self.GLOBALS_ROLE_SORT_DATA)
             units_item.setEditable(False)
             units_item.setCheckState(QtCore.Qt.Unchecked)
-            units_item.setBackground(QtGui.QBrush(QtGui.QColor(self.COLOR_BOOL_OFF)))
+            units_item.setBackground(QtGui.QBrush(QtGui.QColor(self.colorConfig.COLOR_BOOL_OFF)))
         else:
             was_bool = units_item.data(self.GLOBALS_ROLE_IS_BOOL)
             units_item.setData(False, self.GLOBALS_ROLE_IS_BOOL)
@@ -1321,13 +1352,13 @@ class GroupTab(object):
                 # occur in the callback.
                 expansion_item.setText(expansion)
                 if isinstance(value, Exception):
-                    value_item.setBackground(QtGui.QBrush(QtGui.QColor(self.COLOR_ERROR)))
+                    value_item.setBackground(QtGui.QBrush(QtGui.QColor(self.colorConfig.COLOR_ERROR)))
                     value_item.setIcon(QtGui.QIcon(':qtutils/fugue/exclamation'))
                     tooltip = '%s: %s' % (value.__class__.__name__, str(value))
                     self.tab_contains_errors = True
                 else:
-                    if value_item.background().color().name().lower() != self.COLOR_OK.lower():
-                        value_item.setBackground(QtGui.QBrush(QtGui.QColor(self.COLOR_OK)))
+                    if value_item.background().color().name().lower() != self.colorConfig.COLOR_OK.lower():
+                        value_item.setBackground(QtGui.QBrush(QtGui.QColor(self.colorConfig.COLOR_OK)))
                     if not value_item.icon().isNull():
                         # self.logger.info('clearing icon')
                         value_item.setData(None, QtCore.Qt.DecorationRole)
@@ -1358,6 +1389,7 @@ class RunmanagerMainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         QtWidgets.QMainWindow.__init__(self, *args, **kwargs)
         self._previously_painted = False
+        self.logger = logging.getLogger('runmanager')
 
     def closeEvent(self, event):
         if app.on_close_event():
@@ -1376,6 +1408,9 @@ class RunmanagerMainWindow(QtWidgets.QMainWindow):
         
         # theme update only for PySide6
         if QT_ENV == 'PySide6' and event.type() == QtCore.QEvent.Type.ThemeChange:
+            self.logger.info('Theme change event')
+            # update group tab color themes
+            RunmanagerColors().update_colors_from_scheme()
             for widget in self.findChildren(QtWidgets.QWidget):
                 # Complex widgets, like TreeView and TableView require triggering styleSheet and palette updates
                 widget.setPalette(widget.palette())
