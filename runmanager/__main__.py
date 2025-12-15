@@ -32,6 +32,7 @@ import time
 import contextlib
 import subprocess
 import threading
+import logging
 import ast
 import pprint
 import traceback
@@ -96,7 +97,7 @@ def log_if_global(g, g_list, message):
         g_list = [] # add global options here
     
     if g in g_list:
-        logger.info(message)
+        logger.info(message)  # uses global `logger` instance defined in __main__
 
 def check_if_light_or_dark():
     
@@ -703,6 +704,8 @@ class GroupTab(object):
 
     def __init__(self, tabWidget, globals_file, group_name):
 
+        self.logger = setup_logging('lyse.groupTab')
+
         self.tabWidget = tabWidget
 
         loader = UiLoader()
@@ -745,6 +748,7 @@ class GroupTab(object):
 
         # Populate the model with globals from the h5 file:
         self.populate_model()
+        self.logger.info(f'Initial population of {self.group_name}')
         # Set sensible column widths:
         for col in range(self.globals_model.columnCount()):
             if col != self.GLOBALS_COL_VALUE:
@@ -793,7 +797,6 @@ class GroupTab(object):
         else:
             icon = QtGui.QIcon()
         if self.tabWidget.tabIcon(index).cacheKey() != icon.cacheKey():
-            logger.info('setting tab icon')
             self.tabWidget.setTabIcon(index, icon)
 
     def populate_model(self):
@@ -843,7 +846,7 @@ class GroupTab(object):
         self.ui.tableView_globals.sortByColumn(self.GLOBALS_COL_NAME, QtCore.Qt.AscendingOrder)
 
     def make_global_row(self, name, value='', units='', expansion=''):
-        logger.debug('%s:%s - make global row: %s ' % (self.globals_file, self.group_name, name))
+        self.logger.debug('%s:%s - make global row: %s ' % (self.globals_file, self.group_name, name))
         # We just set some data here, other stuff is set in
         # self.update_parse_indication after runmanager has a chance to parse
         # everything and get back to us about what that data should be.
@@ -1077,7 +1080,7 @@ class GroupTab(object):
         self.ui.tableView_globals.sortByColumn(sort_column, sort_order)
 
     def new_global(self, global_name):
-        logger.info('%s:%s - new global: %s', self.globals_file, self.group_name, global_name)
+        self.logger.info('%s:%s - new global: %s', self.globals_file, self.group_name, global_name)
         item = self.get_global_item_by_name(global_name, self.GLOBALS_COL_NAME,
                                             previous_name=self.GLOBALS_DUMMY_ROW_TEXT)
         try:
@@ -1103,7 +1106,7 @@ class GroupTab(object):
             item.setText(self.GLOBALS_DUMMY_ROW_TEXT)
 
     def rename_global(self, previous_global_name, new_global_name):
-        logger.info('%s:%s - rename global: %s -> %s',
+        self.logger.info('%s:%s - rename global: %s -> %s',
                     self.globals_file, self.group_name, previous_global_name, new_global_name)
         item = self.get_global_item_by_name(new_global_name, self.GLOBALS_COL_NAME,
                                             previous_name=previous_global_name)
@@ -1131,7 +1134,7 @@ class GroupTab(object):
                 scroll_view_to_row_if_current(self.ui.tableView_globals, item)
 
     def change_global_value(self, global_name, previous_value, new_value, interactive=True):
-        logger.info('%s:%s - change global value: %s = %s -> %s' %
+        self.logger.info('%s:%s - change global value: %s = %s -> %s' %
                     (self.globals_file, self.group_name, global_name, previous_value, new_value))
         item = self.get_global_item_by_name(global_name, self.GLOBALS_COL_VALUE)
         if not interactive:
@@ -1184,7 +1187,7 @@ class GroupTab(object):
                 scroll_view_to_row_if_current(self.ui.tableView_globals, item)
 
     def change_global_units(self, global_name, previous_units, new_units):
-        logger.info('%s:%s - change units: %s = %s -> %s' %
+        self.logger.info('%s:%s - change units: %s = %s -> %s' %
                     (self.globals_file, self.group_name, global_name, previous_units, new_units))
         item = self.get_global_item_by_name(global_name, self.GLOBALS_COL_UNITS)
         try:
@@ -1201,7 +1204,7 @@ class GroupTab(object):
             scroll_view_to_row_if_current(self.ui.tableView_globals, item)
 
     def change_global_expansion(self, global_name, previous_expansion, new_expansion):
-        logger.info('%s:%s - change expansion: %s = %s -> %s' %
+        self.logger.info('%s:%s - change expansion: %s = %s -> %s' %
                     (self.globals_file, self.group_name, global_name, previous_expansion, new_expansion))
         item = self.get_global_item_by_name(global_name, self.GLOBALS_COL_EXPANSION)
         try:
@@ -1229,7 +1232,7 @@ class GroupTab(object):
         name_item = self.globals_model.itemFromIndex(name_index)
         units_item = self.globals_model.itemFromIndex(units_index)
         global_name = name_item.text()
-        logger.debug('%s:%s - check for boolean values: %s' %
+        self.logger.debug('%s:%s - check for boolean values: %s' %
                      (self.globals_file, self.group_name, global_name))
         if value == 'True':
             units_item.setData(True, self.GLOBALS_ROLE_IS_BOOL)
@@ -1270,7 +1273,7 @@ class GroupTab(object):
         app.globals_changed()
 
     def delete_global(self, global_name, confirm=True):
-        logger.info('%s:%s - delete global: %s' %
+        self.logger.info('%s:%s - delete global: %s' %
                     (self.globals_file, self.group_name, global_name))
         if confirm:
             if not question_dialog("Delete the global '%s'?" % global_name):
@@ -1304,10 +1307,10 @@ class GroupTab(object):
                 # the new expansion type.
                 with self.globals_model_item_changed_disconnected:
                     if expansion_item.data(self.GLOBALS_ROLE_PREVIOUS_TEXT) != expansion:
-                        # logger.info('expansion previous text set')
+                        # self.logger.info('expansion previous text set')
                         expansion_item.setData(expansion, self.GLOBALS_ROLE_PREVIOUS_TEXT)
                     if expansion_item.data(self.GLOBALS_ROLE_SORT_DATA) != expansion:
-                        # logger.info('sort data role set')
+                        # self.logger.info('sort data role set')
                         expansion_item.setData(expansion, self.GLOBALS_ROLE_SORT_DATA)
                 # The next line will now trigger item_changed, but it will not
                 # be detected as an actual change to the expansion type,
@@ -1326,11 +1329,11 @@ class GroupTab(object):
                     if value_item.background().color().name().lower() != self.COLOR_OK.lower():
                         value_item.setBackground(QtGui.QBrush(QtGui.QColor(self.COLOR_OK)))
                     if not value_item.icon().isNull():
-                        # logger.info('clearing icon')
+                        # self.logger.info('clearing icon')
                         value_item.setData(None, QtCore.Qt.DecorationRole)
                     tooltip = repr(value)
                 if value_item.toolTip() != tooltip:
-                    # logger.info('tooltip_changed')
+                    # self.logger.info('tooltip_changed')
                     value_item.setToolTip(tooltip)
             if self.tab_contains_errors:
                 self.set_tab_icon(':qtutils/fugue/exclamation')
@@ -1413,6 +1416,7 @@ class RunManager(object):
     GROUPS_DUMMY_ROW_TEXT = '<Click to add group>'
 
     def __init__(self):
+        self.logger = logging.getLogger('runmanager')
         splash.update_text('loading graphical interface')
         loader = UiLoader()
         loader.registerCustomWidget(FingerTabWidget)
@@ -1444,6 +1448,7 @@ class RunManager(object):
         self.setup_axes_tab()
         self.setup_groups_tab()
         self.connect_signals()
+        self.logger.info('UI loaded')
 
         # The last location from which a labscript file was selected, defaults
         # to labscriptlib:
@@ -1497,6 +1502,7 @@ class RunManager(object):
             os.path.join(runmanager_dir, 'batch_compiler.py'),
             output_redirection_port=self.output_box.port,
         )
+        self.logger.info('compiler subprocess started')
 
         # Is blank until a labscript file is selected:
         self.previous_default_output_folder = ''
@@ -1549,6 +1555,7 @@ class RunManager(object):
                                             ],
                                   }
         self.exp_config = LabConfig(required_params = required_config_params)
+        self.logger.info('LabConfig loaded')
 
     def setup_axes_tab(self):
         self.axes_model = QtGui.QStandardItemModel()
@@ -1581,7 +1588,7 @@ class RunManager(object):
         # setup header widths
         self.ui.treeView_axes.header().setStretchLastSection(False)
         self.ui.treeView_axes.header().setSectionResizeMode(self.AXES_COL_NAME, QtWidgets.QHeaderView.Stretch)
-                                                          
+
     def setup_groups_tab(self):
         self.groups_model = QtGui.QStandardItemModel()
         self.groups_model.setHorizontalHeaderLabels(['File/group name', 'Active', 'Delete', 'Open/Close'])
@@ -1703,6 +1710,7 @@ class RunManager(object):
         QtGui.QShortcut('ctrl+W', self.ui, self.close_current_tab)
         QtGui.QShortcut('ctrl+Tab', self.ui, lambda: self.switch_tabs(+1))
         QtGui.QShortcut('ctrl+shift+Tab', self.ui, lambda: self.switch_tabs(-1))
+        self.logger.info('Signals connected')
 
     def on_close_event(self):
         save_data = self.get_save_data()
@@ -1837,7 +1845,7 @@ class RunManager(object):
         self.ui.lineEdit_shot_output_folder.setToolTip(text)
 
     def on_engage_clicked(self):
-        logger.info('Engage')
+        self.logger.info('Engage')
         try:
             send_to_BLACS = self.ui.checkBox_run_shots.isChecked()
             send_to_runviewer = self.ui.checkBox_view_shots.isChecked()
@@ -1850,7 +1858,7 @@ class RunManager(object):
             if not output_folder:
                 raise Exception('Error: No output folder selected')
             BLACS_host = self.ui.lineEdit_BLACS_hostname.text()
-            logger.info('Parsing globals...')
+            self.logger.info('Parsing globals...')
             active_groups = self.get_active_groups()
             # Get ordering of expansion globals
             expansion_order = {}
@@ -1864,14 +1872,14 @@ class RunManager(object):
                 sequenceglobals, shots, evaled_globals, global_hierarchy, expansions = self.parse_globals(active_groups, expansion_order=expansion_order)
             except Exception as e:
                 raise Exception('Error parsing globals:\n%s\nCompilation aborted.' % str(e))
-            logger.info('Making h5 files')
+            self.logger.info('Making h5 files')
             labscript_file, run_files = self.make_h5_files(
                 labscript_file, output_folder, sequenceglobals, shots, shuffle)
             self.ui.pushButton_abort.setEnabled(True)
             self.compile_queue.put([labscript_file, run_files, send_to_BLACS, BLACS_host, send_to_runviewer])
         except Exception as e:
             self.output_box.output('%s\n\n' % str(e), red=True)
-        logger.info('end engage')
+        self.logger.info('end engage')
 
     def on_abort_clicked(self):
         self.compilation_aborted.set()
@@ -2516,7 +2524,7 @@ class RunManager(object):
                 self.check_output_folder_update()
             except Exception as e:
                 # Don't stop the thread.
-                logger.exception("error checking default output folder")
+                self.logger.exception("error checking default output folder")
 
     @inmain_decorator()
     def check_output_folder_update(self):
@@ -2653,6 +2661,7 @@ class RunManager(object):
                 break
         self.update_tabs_parsing_indication(active_groups, sequence_globals, evaled_globals, self.n_shots)
         self.update_axes_tab(expansions, dimensions)
+        self.logger.info('Globals parsed')
 
     def preparse_globals_loop(self):
         """Runs in a thread, waiting on a threading.Event that tells us when
@@ -2677,6 +2686,7 @@ class RunManager(object):
                         except queue.Empty:
                             break
                 # Do some work:
+                self.logger.info(f'Pre-parsing globals with {n_requests:d} requests')
                 self.preparse_globals()
                 # Tell any callers calling preparse_globals_required.join() that we are
                 # done with their request:
@@ -3508,7 +3518,7 @@ class RunManager(object):
             filename_prefix,
             shuffle,
         )
-        logger.debug(run_files)
+        self.logger.debug(run_files)
         return labscript_file, run_files
 
     def send_to_BLACS(self, run_file, BLACS_hostname):
@@ -3533,7 +3543,7 @@ class RunManager(object):
             if 'hello' not in response:
                 raise Exception(response)
         except Exception as e:
-            logger.info('runviewer not running, attempting to start...')
+            self.logger.info('runviewer not running, attempting to start...')
             # Runviewer not running, start it:
             if os.name == 'nt':
                 creationflags = 0x00000008  # DETACHED_PROCESS from the win32 API
@@ -3753,7 +3763,6 @@ if __name__ == "__main__":
         qapplication = QtWidgets.QApplication(sys.argv)
     qapplication.setAttribute(QtCore.Qt.AA_DontShowIconsInMenus, False)
     app = RunManager()
-    logger.info(f'OS Theme is : {check_if_light_or_dark()}')
     splash.update_text('Starting remote server')
     remote_server = RemoteServer()
     splash.hide()
