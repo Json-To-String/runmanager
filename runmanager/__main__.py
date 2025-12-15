@@ -1294,6 +1294,13 @@ class GroupTab(object):
                 self.ui.tableView_globals.setCurrentIndex(units_item.index())
                 self.ui.tableView_globals.edit(units_item.index())
 
+    def redraw_boolean_values(self):
+        """Called during theme changes to ensure boolean values get repainted with new colors"""
+
+        for r in range(self.globals_model.rowCount()-1): # don't parse add-global row
+            item = self.globals_model.item(r, self.GLOBALS_COL_VALUE)
+            self.check_for_boolean_values(item)
+
     def globals_changed(self):
         """Called whenever something about a global has changed. call
         app.globals_changed to inform the main application that it needs to
@@ -1418,6 +1425,7 @@ class RunmanagerMainWindow(QtWidgets.QMainWindow):
 
             for tab in app.currently_open_groups.values():
                 tab.globals_model.bg_brushes = {}  # reset pre-calculated brushes
+                tab.redraw_boolean_values()
 
             # refresh globals model colors
             app.globals_changed()
