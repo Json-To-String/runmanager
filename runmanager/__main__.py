@@ -1375,8 +1375,14 @@ class RunmanagerMainWindow(QtWidgets.QMainWindow):
         if QT_ENV == 'PySide6' and event.type() == QtCore.QEvent.Type.ThemeChange:
             for widget in self.findChildren(QtWidgets.QWidget):
                 # Complex widgets, like TreeView and TableView require triggering styleSheet and palette updates
-                widget.setStyleSheet(widget.styleSheet())
                 widget.setPalette(widget.palette())
+                widget.setStyleSheet(widget.styleSheet())
+
+            for tab in app.currently_open_groups.values():
+                tab.globals_model.bg_brushes = {}  # reset pre-calculated brushes
+
+            # refresh globals model colors
+            app.globals_changed()
 
         return super().changeEvent(event)
 
